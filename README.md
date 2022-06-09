@@ -2,11 +2,13 @@
 ## Install the Azure CLI
  
 Use the following commands if you're using Ubuntu.
+```
 sudo apt-get update  
 sudo apt-get install azure-cli  
 Run the login command. 
-az login  
-For other OS you can learn here .
+az login  ```
+
+
  
 So this is what  we are going to do. Let's divide it into simple steps. 
 ## Step 1 - Create a simple 'Hello World' in Node.js and push it to GitHub
@@ -22,20 +24,21 @@ To create a project it should be installed on your machine and to install node j
 ## Creating a Node Project
  
 Create a new directory and initialize the node with the command.
+```
 npm init  
 What is NPM?
- 
+``` 
 Npm is a package manager where all the javascript packages reside. We use NPM to download all the javascript packages through npm.
-''
+```
 mkdir nodeexample  
 cd nodeexample/  
-npm init -y  ''
+npm init -y  ```
 After executing the command, a package.json file is generated in the project and this holds all the details relevant to the project.
  
 ## Configure Express
  
 Express is used to create a server. The below command is used to create our server.
-
+```
 npm install express --save 
 We are creating a new server that will be running on port 3000. I am creating a route that returns hello world. Here is the complete code.
 const express = require('express')    
@@ -47,8 +50,11 @@ app.get('/', (req, res) => {
 app.listen(port, () => {    
   console.log(`Example app listening at http://localhost:${port}`)    
 })     
+```
 Now start the server using the below command.
+
 npm start  
+
 Open your browser and navigate to http://localhost:3000/. You should see Hello world getting displayed.
 Dockerize the project 
  
