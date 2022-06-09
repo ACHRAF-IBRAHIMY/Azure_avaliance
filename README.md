@@ -1,7 +1,7 @@
 # Azure
 ## Install the Azure CLI
  
-Use the following commands if you're using Ubuntu.
+
 ```
 sudo apt-get update  
 sudo apt-get install azure-cli  
@@ -33,7 +33,8 @@ Npm is a package manager where all the javascript packages reside. We use NPM to
 ```
 mkdir nodeexample  
 cd nodeexample/  
-npm init -y  ```
+npm init -y  
+```
 After executing the command, a package.json file is generated in the project and this holds all the details relevant to the project.
  
 ## Configure Express
@@ -57,37 +58,36 @@ Now start the server using the below command.
 npm start  
 
 Open your browser and navigate to http://localhost:3000/. You should see Hello world getting displayed.
-Dockerize the project 
+## Dockerize the project 
  
 What is docker?
  
 Docker is a set of the platform as a service products that use OS-level virtualization to deliver software in packages called containers. Containers are isolated from one another and bundle their own software, libraries, and configuration files.
  
 Create an empty file named Dockerfile in the root directory and paste the following code
-# Create app directory    
-WORKDIR /usr/src/app    
+Create app directory :  WORKDIR /usr/src/app    
    
-# Install app dependencies    
-# A wildcard is used to ensure both package.json AND package-lock.json are copied    
-# where available (npm@5+)    
+ Install app dependencies    
+ A wildcard is used to ensure both package.json AND package-lock.json are copied    
+ where available (npm@5+)    
 COPY package*.json ./    
     
 RUN npm install    
-# If you are building your code for production    
-# RUN npm ci --only=production    
+RUN npm ci --only=production    
    
-# Bundle app source    
-COPY . .    
-    
+## Bundle app source    
+```
+COPY . .      
 EXPOSE 80    
 CMD [ "node", "index.js" ]     
 Build the docker image
 docker build -t <your username>/nodeexample  
 Run the docker image
 docker run -p 49160:3000 -d <your username>/nodeexample  
-if successful you can go to your browser and visit this address http://localhost:49160/You must see Hello World. You can learn more here and this is very detailed documentation. Now what you need to do is create a Github repository and push the code to Github.
- 
-Step 2 - Setup a pipeline in Azure DevOps 
+ ```
+if successful you can go to your browser and visit this address http://localhost:49160/ You must see Hello World. 
+
+# Step 2 - Setup a pipeline in Azure DevOps 
  
 Now go to Azure DevOps click on start free and log in using your email and password. After logging in click on New Project. 
  
