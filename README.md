@@ -6,7 +6,8 @@ Use the following commands if you're using Ubuntu.
 sudo apt-get update  
 sudo apt-get install azure-cli  
 Run the login command. 
-az login  ```
+az login 
+```
 
 
  
