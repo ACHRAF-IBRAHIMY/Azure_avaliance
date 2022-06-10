@@ -87,6 +87,30 @@ docker run -p 49160:3000 -d <your username>/nodeexample
  ```
 if successful you can go to your browser and visit this address http://localhost:49160/ You must see Hello World. 
 
+# Create app directory    
+WORKDIR /usr/src/app    
+   
+# Install app dependencies    
+# A wildcard is used to ensure both package.json AND package-lock.json are copied    
+# where available (npm@5+)    
+COPY package*.json ./    
+    
+RUN npm install    
+# If you are building your code for production    
+# RUN npm ci --only=production    
+   
+# Bundle app source    
+COPY . .    
+    
+EXPOSE 80    
+CMD [ "node", "index.js" ]     
+Build the docker image
+docker build -t <your username>/nodeexample  
+Run the docker image
+docker run -p 49160:3000 -d <your username>/nodeexample  
+if successful you can go to your browser and visit this address http://localhost:49160/You must see Hello World. You can learn more here and this is very detailed documentation. Now what you need to do is create a Github repository and push the code to Github.
+ 
+
 # Step 2 - Setup a pipeline in Azure DevOps 
  
 Now go to Azure DevOps click on start free and log in using your email and password. After logging in click on New Project. 
