@@ -59,7 +59,7 @@ npm start
 
 Open your browser and navigate to http://localhost:3000/. You should see Hello world getting displayed.
 
-![alt text]([http://](https://user-images.githubusercontent.com/96426756/173149777-a6011c78-f06a-4656-9ecd-e52bd2fa4c8c.png))
+![This is an image]([http://](https://user-images.githubusercontent.com/96426756/173149777-a6011c78-f06a-4656-9ecd-e52bd2fa4c8c.png))
 
 ## Dockerize the project 
  
