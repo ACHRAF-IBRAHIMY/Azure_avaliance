@@ -311,4 +311,4 @@ Now we are ready to test the workflow. Now go to the code and make any changes a
 
 So now you don't need to build your docker image and push it to the docker hub. You don't need to create resources manually. You just need to focus on your code and whenever you push any changes it will do the rest for you. Now if everything is complete you can go to Azure and check if the Azure container instance is running.
  
- ![image]()
+ 
