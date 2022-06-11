@@ -137,3 +137,178 @@ Based on the code and file in the project, it will automatically suggest many op
 You will be presented with an azure-pipeline.yml file to review. This file contains pretty much what we need to do but we are going to add something more to this file. wW are going to add a different task to this file and for that click on Show Assistant and search for Docker and choose docker.
 
 
+Step 3 - Automatically create a docker image and push it to docker hub
+
+Search for Docker and choose docker.
+
+![image](https://user-images.githubusercontent.com/96426756/173195062-90e183c6-4bfe-481a-9a64-e21c7b3bc175.png)
+
+Choose your docker registry. We have already set up our service connection to docker then you must see the connection name so choose the connection and give Container repository a name. Leave everything default and click on Add. It will add another task.
+
+![image](https://user-images.githubusercontent.com/96426756/173195066-8020781e-e9ea-4bc0-854a-3a31295bafb8.png)
+
+Our previous task only builds the docker image but it doesn't push to the docker hub so we are going to remove or replace the task with the task we have just created. Your YAML file should look something like this. 
+```
+# Docker    
+# Build a Docker image     
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker    
+    
+trigger:    
+- main    
+    
+resources:    
+- repo: self    
+    
+variables:    
+  tag: '$(Build.BuildId)'    
+    
+stages:    
+- stage: Build    
+  displayName: Build image    
+  jobs:      
+  - job: Build    
+    displayName: Build    
+    pool:    
+      vmImage: 'ubuntu-latest'    
+    steps:    
+    - task: Docker@2    
+      inputs:    
+        containerRegistry: 'docker connection'    
+        repository: 'achraf/demodckreg'    
+        command: 'buildAndPush'    
+        Dockerfile: '**/Dockerfile'    
+        tags: |    
+          $(tag)   
+```
+Now click on Save and Run. Commit directly to the main branch.
+
+![image](https://user-images.githubusercontent.com/96426756/173195067-5a69cc84-c38d-42de-9eff-a4bb202de499.png)
+
+You will be presented with the below screen and you will see the build running.
+
+![image](https://user-images.githubusercontent.com/96426756/173195068-e3bdfa7e-e1b7-4d12-8638-691cb53359a2.png)
+
+If you click on the build then you can see the full log of the build.
+
+![image](https://user-images.githubusercontent.com/96426756/173195243-94b640b2-8d57-44be-afa7-8e284c62e1ed.png)
+
+# Step 4 - Set up Terraform for automatically creating resources in Azure and deploying docker image.
+ 
+## So what is Terraform?
+ 
+Terraform is an open-source infrastructure as a code software tool that provides a consistent CLI workflow to manage hundreds of cloud services. You can learn more here.
+ 
+## What is Infrastructure as Code?
+ 
+Infrastructure as code (IaC) is the process of managing and provisioning resources on the Cloud rather than logging in to your cloud provider and doing it manually. You can write codes which will interact with your cloud provider and can create, modify, and delete resource automatically without visiting the portal.
+ 
+Create a file named main.tf in the root directory of the project. This file holds the terraform configuration code. Add the following code.
+```
+provider "azurerm" {    
+    version = "2.5.0"    
+    features {}    
+}     
+
+resource "azurerm_resource_group" "terraform_test" {    
+  name = "ans-tes-grp"    
+  location = "westus2"    
+}   
+```
+As we need a resource group in azure for our resources the above code will create a resource group named ans-test-grp in west us. Let us test if everything is fine and to do so we need to initialize terraform. Use the following command for that.
+
+```
+provider "azurerm" {    
+    version = "2.5.0"    
+    features {}    
+}    
+    
+terraform {    
+    backend "azurerm" {    
+        resource_group_name  = "achrafRG"    
+        storage_account_name = "terraformstfl"    
+        container_name       = "tfstate"    
+        key                  = "terraform.tfstate"    
+    }    
+}    
+    
+variable "imagebuild" {    
+  type        = string    
+  description = "Latest Image Build"    
+}    
+    
+resource "azurerm_resource_group" "terraform_test" {    
+  name = "ans-tes-grp"    
+  location = "Australia East"    
+}    
+    
+resource "azurerm_container_group" "tfcg_test" {    
+  name                      = "node-taste-anish"    
+  location                  = azurerm_resource_group.anish_terraform_test.location    
+  resource_group_name       = azurerm_resource_group.anish_terraform_test.name    
+    
+  ip_address_type     = "public"    
+  dns_name_label      = "achraf"    
+  os_type             = "Linux"    
+    
+  container {    
+      name            = "node-tes-anish"    
+      image           = "achraf/nodetest:${var.imagebuild}"    
+        cpu             = "1"    
+        memory          = "1"    
+    
+        ports {    
+            port        = 80    
+            protocol    = "TCP"    
+        }    
+  }    
+}       
+} 
+```
+We need to provide access to terraform in order to work remotely --  I mean from pipeline not from our local machine -- and to do so head over to Azure and search for Azure Active directory. Click on App registration and click on new registration. 
+
+![image](https://user-images.githubusercontent.com/96426756/173195548-2addab3d-0b25-419b-b6e3-0ed22a4e25ab.png)
+
+Give it a name and choose Accounts in this organizational directory only (Default Directory only - Single-tenant).Click on the register and once it is complete copy the following.
+- Client ID
+- Tenant ID
+Head over to certificates and secrets and click on New client secret. Give it a name and copy the value.
+
+![image](https://user-images.githubusercontent.com/96426756/173195550-85a10ee9-4a73-4feb-b622-5b2fef204da1.png)
+
+Now go back to your subscription and copy the subscription ID. Go to your pipeline and click on Library for adding these four values for terraform to communicate with Azure. Add all four values here like below.
+
+![image](https://user-images.githubusercontent.com/96426756/173195553-423784f6-ac56-401e-8486-ea6f3584f3a2.png)
+
+Once you're done go to your azure-pipeline.yml file and add another stage.
+```
+- stage: Provision  
+  displayName: 'Terraforming on Azure...'  
+  dependsOn: Build  
+  jobs:  
+  - job: Provision  
+    displayName: 'Provisioning Container Instance'  
+    pool:  
+      vmImage: 'ubuntu-latest'  
+    variables:   
+    - group: terraformvars // Library name in your pipeline  
+    steps:  
+    - script: |  
+        set -e  
+        terraform init -input=false  
+        terraform apply -input=false -auto-approve  
+      name: 'RunTerraform'  
+      displayName: 'Run Terraform'  
+      env:  
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)  
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)  
+        ARM_TENANT_ID: $(ARM_TENANT_ID)  
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)  
+        TF_VAR_imagebuild: $(tag)  
+```
+Now we are ready to test the workflow. Now go to the code and make any changes and push it to GitHub. Once done head back to DevOps. Now go to the code and make any changes and push it to GitHub. Head back to DevOps and you will see one build running with two states something like below and of course you can see the complete log when you click on it. Once it is done you can go back to azure and check if everything is completed.
+
+![image](https://user-images.githubusercontent.com/96426756/173195554-13b1402b-0a44-4b2a-980c-84f6dfdd0b51.png)
+
+So now you don't need to build your docker image and push it to the docker hub. You don't need to create resources manually. You just need to focus on your code and whenever you push any changes it will do the rest for you. Now if everything is complete you can go to Azure and check if the Azure container instance is running.
+ 
+ ![image]()
